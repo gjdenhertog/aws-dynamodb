@@ -1,0 +1,30 @@
+{
+    "name": "aws-dynamodb",
+    "version": "0.0.1",
+    "authors": [
+        "Joachim den Hertog <info@shiftvision.nl>"
+    ],
+    "description": "A custom polymer element that communicates with AWS DynamoDB",
+    "keywords": [
+        "web-component",
+        "web-components",
+        "polymer",
+        "aws",
+        "dynamodb"
+    ],
+    "main": "aws-dynamodb.html",
+    "license": "MIT",
+    "homepage": "https://github.com/gjdenhertog/aws-dynamodb",
+    "ignore": [
+        "/.*",
+        "/test/",
+        "/demo/"
+    ],
+    "dependencies": {
+        "polymer": "Polymer/polymer#^1.0.0"
+    },
+    "devDependencies": {
+        "web-component-tester": "*",
+        "iron-component-page": "PolymerElements/iron-component-page#^1.0.0"
+    }
+}
