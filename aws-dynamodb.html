@@ -1,4 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.5.min.js"></script>
 
 <script>
   (function() {
@@ -7,7 +8,42 @@
     var AWSDynamoDB = Polymer({
       is: 'aws-dynamodb',
 
-      properties: {}
+      properties: {
+        data: {
+          notify: true
+        },
+
+        table: {
+          type: String
+        },
+
+        region: {
+          type: String
+        },
+
+        authentication: {
+          type: Object
+        }
+      },
+
+      ready: function () {
+        AWS.config.update(this.authentication);
+
+        AWS.config.region = this.region;
+
+        var db = new AWS.DynamoDB();
+
+        var params = {
+          TableName: this.table,
+          Limit: 100
+        };
+
+        var save = function (context, nothing, data) {
+          context.data = data.Items;
+        };
+
+        db.scan(params, save.bind(null, this));
+      }
     });
   })();
 </script>
