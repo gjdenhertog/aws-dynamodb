@@ -6,7 +6,7 @@ A custom polymer element that communicates with AWS DynamoDB
 
 Example:
 
-    <aws-dynamodb></aws-dynamodb>
+    <aws-dynamodb data="{{data}}"></aws-dynamodb>
 
 @demo
 -->
@@ -18,9 +18,21 @@ Example:
       is: 'aws-dynamodb',
 
       properties: {
+
+        /**
+         * An ordered array of data items produced by the current DynamoDb Query instance.
+         */
         data: {
-          notify: true
+          type: Array,
+          readOnly: true,
+          notify: true,
+          value: function () {
+            return [];
+          }
         },
+
+
+
 
         table: {
           type: String

@@ -25,14 +25,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <aws-dynamodb></aws-dynamodb>
 
     <script>
-      var myEl = document.querySelector('aws-dynamodb');
+      var awsDynamodb = document.querySelector('aws-dynamodb');
 
       describe('<aws-dynamodb>', function () {
-        describe('first test', function () {
-          it('should pass', function () {
-            assert.equal(1,1);
+        describe('basic usage', function () {
+
+
+          it('exposes data as an array', function () {
+            expect(awsDynamodb.data).to.be.an('array');
+            // expect(awsDynamodb).to.be.an('array');
+          });
+
+          it.skip('receives data from DynamoDB', function (done) {
+
           });
         });
+
+        describe('collection manipulation', function () {
+          it.skip('adds a value to the collection', function (done) {
+
+          });
+
+          it.skip('removes a value from the collection', function (done) {
+
+          });
+        });
+
+/**
+_authenticate?
+add
+remove
+_computeQuery
+*/
       });
     </script>
 
