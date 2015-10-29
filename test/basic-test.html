@@ -15,43 +15,99 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../test-fixture/test-fixture-mocha.js"></script>
 
-    <!-- Step 1: import the element to test -->
+    <link rel="import" href="../../polymer/polymer.html">
+    <link rel="import" href="../../test-fixture/test-fixture.html">
+    <link rel="import" href="test-helpers.html">
     <link rel="import" href="../aws-dynamodb.html">
   </head>
   <body>
 
     <!-- You can use the document as a place to set up your fixtures. -->
-    <aws-dynamodb></aws-dynamodb>
+    <test-fixture id="TrivialCollection">
+      <template>
+        <aws-dynamodb
+          location="">
+        </aws-dynamodb>
+      </template>
+    </test-fixture>
 
     <script>
-      var awsDynamodb = document.querySelector('aws-dynamodb');
+      /* global describe: false */
+      /* global it: false */
+      /* global expect: false */
+      'use strict';
+
+/*
+@todo:
+- Add setup function that makes sure the DB is running and than creates the test tables and adds the test data
+*/
 
       describe('<aws-dynamodb>', function () {
-        describe('basic usage', function () {
+        var awsDynamodb;
 
+        before('Populate the DynamoDB', function (done) {
+console.log('call setup');
+          setupDynamoDb( done );
+          // done();
+        });
+
+        after('Delete the DynamoDB table', function (done) {
+          teardownDynamoDb( done );
+        });
+
+        describe('basic usage', function () {
+          before(function () {
+            awsDynamodb = fixture('TrivialCollection');
+          });
 
           it('exposes data as an array', function () {
             expect(awsDynamodb.data).to.be.an('array');
-            // expect(awsDynamodb).to.be.an('array');
           });
 
-          it.skip('receives data from DynamoDB', function (done) {
+          it('receives data from DynamoDB', function (done) {
+            waitForEvent(awsDynamodb, 'dynamodb-data').then(function () {
+              expect(awsDynamodb.data.length).to.be.above(0);
+              done();
+            }).catch(function(e) {
+              done(e);
+            });
+          });
+
+        });
+
+        describe('advanced usage', function () {
+
+          it.skip('accepts a query', function () {
 
           });
+
+          it.skip('filters data', function (done) {
+            done();
+          });
+
+          it.skip('limits the number of returned records', function (done) {
+            done();
+          });
+
         });
 
         describe('collection manipulation', function () {
-          it.skip('adds a value to the collection', function (done) {
 
+          it.skip('adds a value to the collection', function (done) {
+            done();
           });
 
           it.skip('removes a value from the collection', function (done) {
-
+            done();
           });
+
         });
 
 /**
+scan vs query
+
 _authenticate?
 add
 remove

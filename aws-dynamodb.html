@@ -24,10 +24,20 @@ Example:
          */
         data: {
           type: Array,
-          readOnly: true,
+          readOnly: false, // @todo: should be true
           notify: true,
           value: function () {
             return [];
+          }
+        },
+
+        /**
+         * A string that contains the region the DynamoDB is located in
+         */
+        region: {
+          type: String,
+          value: function () {
+            return 'eu-west-1';
           }
         },
 
@@ -38,32 +48,139 @@ Example:
           type: String
         },
 
-        region: {
-          type: String
-        },
-
         authentication: {
           type: Object
         }
       },
 
       ready: function () {
-        AWS.config.update(this.authentication);
+        // AWS.config.update(this.authentication);
 
         AWS.config.region = this.region;
 
-        var db = new AWS.DynamoDB();
+        // var db = new AWS.DynamoDB();
+// @todo: add the endpoint as a attribute
+var db = new AWS.DynamoDB({
+  'accessKeyId': 'a',
+  'secretAccessKey':'b',
+  'endpoint':'http://localhost:4567'
+});
+/*
+// CREATE TABLE
+var params = {
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "ForumName",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "Subject",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "LastPostDateTime",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "Thread",
+    "KeySchema": [
+        {
+            "AttributeName": "ForumName",
+            "KeyType": "HASH"
+        },
+        {
+            "AttributeName": "Subject",
+            "KeyType": "RANGE"
+        }
+    ],
+    "LocalSecondaryIndexes": [
+        {
+            "IndexName": "LastPostIndex",
+            "KeySchema": [
+                {
+                    "AttributeName": "ForumName",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "LastPostDateTime",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "KEYS_ONLY"
+            }
+        }
+    ],
+    "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+    }
+};
+db.createTable(params, function (err, data) {
+  if (err) console.log(err, err.stack); // an error occurred
+  else     console.log(data);           // successful response
+});
+*/
 
-        var params = {
-          TableName: this.table,
-          Limit: 100
-        };
+/*
+// CREATE ITEM
+var params = {
+    "TableName": "Thread",
+    "Item": {
+        "LastPostDateTime": {
+            "S": "201303190422"
+        },
+        "Tags": {
+            "SS": ["Update","Multiple Items","HelpMe"]
+        },
+        "ForumName": {
+            "S": "Amazon DynamoDB"
+        },
+        "Message": {
+            "S": "I want to update multiple items in a single API call. What's the best way to do that?"
+        },
+        "Subject": {
+            "S": "How do I update multiple items?"
+        },
+        "LastPostedBy": {
+            "S": "fred@example.com"
+        }
+    },
+    "ConditionExpression": "ForumName <> :f and Subject <> :s",
+    "ExpressionAttributeValues": {
+        ":f": {"S": "Amazon DynamoDB"},
+        ":s": {"S": "How do I update multiple items?"}
+    }
+};
+db.putItem(params, function (err, data) {
+  if (err) console.log(err, err.stack); // an error occurred
+  else     console.log(data);           // successful response
+});
+*/
 
-        var save = function (context, nothing, data) {
-          context.data = data.Items;
-        };
+db.listTables({}, function(err, data) {
+  if (err) console.log(err, err.stack); // an error occurred
+  else     console.log(data);           // successful response
+});
 
-        db.scan(params, save.bind(null, this));
+this.table = 'Forum';
+var params = {
+  TableName: this.table,
+  Limit: 100
+};
+
+var save = function (context, nothing, data) {
+// console.log(data);
+// console.log(nothing);
+  context.data = data.Items;
+console.log('DynamoDB Event: data retrieved', data.Items);
+  context.fire('dynamodb-data', data.Items, { bubbles: false });
+};
+
+db.scan(params, save.bind(null, this));
+
+
+
       }
     });
   })();
