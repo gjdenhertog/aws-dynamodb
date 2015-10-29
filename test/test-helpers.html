@@ -1,0 +1,222 @@
+<script>
+  function waitForEvent(element, event) {
+    return new Promise(function(resolve, reject) {
+      element.addEventListener(event, function onEvent() {
+        element.removeEventListener(event, onEvent);
+        resolve();
+      });
+    });
+  }
+
+  function setupDynamoDb ( callback ) {
+    AWS.config.region = 'eu-west-1';
+
+    createTable( callback );
+  }
+
+  function createTable( callback ) {
+    var db = new AWS.DynamoDB({
+      'accessKeyId': 'a',
+      'secretAccessKey':'b',
+      'endpoint':'http://localhost:4567'
+    });
+
+    var params = {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "Name",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "Category",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "Forum",
+        "KeySchema": [
+            {
+                "AttributeName": "Name",
+                "KeyType": "HASH"
+            },
+            {
+                "AttributeName": "Category",
+                "KeyType": "RANGE"
+            }
+        ],
+        "ProvisionedThroughput": {
+            "ReadCapacityUnits": 5,
+            "WriteCapacityUnits": 5
+        }
+    };
+
+    db.createTable(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+        // Table probably exists so it's fine to continue
+      } else {
+        // Destroy the AWS object
+        delete db;
+      }
+
+// @todo: this should be solved more elegantly
+      // If we neede to create the item
+      setTimeout(function () {
+        populateTable( callback );
+      }, 100);
+    });
+  }
+
+  function populateTable( callback ) {
+    var db = new AWS.DynamoDB({
+      'accessKeyId': 'a',
+      'secretAccessKey':'b',
+      'endpoint':'http://localhost:4567'
+    });
+
+    var params = {
+        "RequestItems": {
+            "Forum": [
+                {
+                    "PutRequest": {
+                        "Item": {
+                            "Name": {
+                                "S": "Amazon DynamoDB"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                },
+                {
+                    "PutRequest": {
+                        "Item": {
+                            "Name": {
+                                "S": "Amazon RDS"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                },
+                {
+                    "PutRequest": {
+                        "Item": {
+                            "Name": {
+                                "S": "Amazon Redshift"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                },
+                {
+                    "PutRequest": {
+                        "Item": {
+                            "Name": {
+                                "S": "Amazon ElastiCache"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "ReturnConsumedCapacity": "TOTAL"
+    };
+
+    db.batchWriteItem(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+      } else {
+        // Destroy the AWS object
+        delete db;
+      }
+
+      callback();
+    });
+  }
+
+  function teardownDynamoDb ( callback ) {
+    emptyTable( callback );
+  }
+
+  function emptyTable( callback ) {
+    var db = new AWS.DynamoDB({
+      'accessKeyId': 'a',
+      'secretAccessKey':'b',
+      'endpoint':'http://localhost:4567'
+    });
+
+    var params = {
+        "RequestItems": {
+            "Forum": [
+                {
+                    "DeleteRequest": {
+                        "Key": {
+                            "Name": {
+                                "S": "Amazon DynamoDB"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                },
+                {
+                    "DeleteRequest": {
+                        "Key": {
+                            "Name": {
+                                "S": "Amazon RDS"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                },
+                {
+                    "DeleteRequest": {
+                        "Key": {
+                            "Name": {
+                                "S": "Amazon Redshift"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                },
+                {
+                    "DeleteRequest": {
+                        "Key": {
+                            "Name": {
+                                "S": "Amazon ElastiCache"
+                            },
+                            "Category": {
+                                "S": "Amazon Web Services"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "ReturnConsumedCapacity": "TOTAL"
+    };
+
+    db.batchWriteItem(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+      } else {
+        // Destroy the AWS object
+        delete db;
+      }
+
+      callback();
+    });
+  }
+</script>

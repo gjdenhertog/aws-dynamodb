@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "dynalite": "^0.16.0"
+  },
+  "scripts": {},
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "dependencies": {}
+}
