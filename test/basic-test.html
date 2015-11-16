@@ -28,7 +28,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <test-fixture id="TrivialCollection">
       <template>
         <aws-dynamodb
-          location="">
+          region="eu-west-1"
+          endpoint="http://localhost:4567"
+          accesKeyId="keyId"
+          secretAccessKey="accessKey"
+          table-name="Forum">
         </aws-dynamodb>
       </template>
     </test-fixture>
@@ -39,18 +43,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       /* global expect: false */
       'use strict';
 
-/*
-@todo:
-- Add setup function that makes sure the DB is running and than creates the test tables and adds the test data
-*/
-
       describe('<aws-dynamodb>', function () {
         var awsDynamodb;
 
         before('Populate the DynamoDB', function (done) {
-console.log('call setup');
           setupDynamoDb( done );
-          // done();
         });
 
         after('Delete the DynamoDB table', function (done) {
@@ -60,6 +57,10 @@ console.log('call setup');
         describe('basic usage', function () {
           before(function () {
             awsDynamodb = fixture('TrivialCollection');
+          });
+
+          it('authenticates', function () {
+            expect(awsDynamodb.authenticated).to.be.true;
           });
 
           it('exposes data as an array', function () {

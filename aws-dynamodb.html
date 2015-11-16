@@ -9,6 +9,9 @@ Example:
     <aws-dynamodb data="{{data}}"></aws-dynamodb>
 
 @demo
+
+@todo:
+- Implement authentication check
 -->
 <script>
   (function() {
@@ -41,146 +44,175 @@ Example:
           }
         },
 
-
-
-
-        table: {
-          type: String
+        /**
+         * Boolean that indicates the authentication state
+         */
+        authenticated: {
+          type: Boolean,
+          value: true
         },
 
-        authentication: {
+        /**
+         * String containing the endpoint of the DynamoDB on AWS
+         */
+        endpoint: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * String containing the accessKeyId for AWS
+         */
+        accessKeyId: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * String containg the secretAccessKey for AWS
+         */
+        secretAccessKey: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * String containing the table name to be used
+         */
+        tableName: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * Number limiting the nummer of results
+         */
+        limit: {
+          type: Number,
+          value: 100
+        },
+
+        /**
+         * String containing the name of the index to be used in queries
+         */
+        indexName: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * String containing the condition expression
+         */
+        conditionExpression: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * Object containing the condition names
+         */
+        conditionNames: {
+          type: Object,
+          value: {}
+        },
+
+        /**
+         * Object containing the condition values
+         */
+        conditionValues: {
+          type: Object,
+          value: {}
+        },
+
+        /**
+         * Boolean indicating whether the results should be ordered ascending or descending
+         */
+        ascending: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * Object containing the query parameters
+         */
+        query: {
+          type: Object,
+          computed: '_computeQuery(_db, tableName, limit, indexName, conditionExpression, conditionNames, conditionValues, ascending)',
+          observer: '_queryChanged'
+        },
+
+        /**
+         * String containing the sort of operation (scan or query)
+         */
+        operation: {
+          type: String,
+          value: function () {
+            return 'scan';
+          },
+          observer: '_operationChanged'
+        },
+
+        _db: {
           type: Object
         }
       },
 
-      ready: function () {
-        // AWS.config.update(this.authentication);
+      observers: [
+        '_populateDb(region, accessKeyId, secretAccessKey, endpoint)'
+      ],
 
-        AWS.config.region = this.region;
+      /**
+       * Creates an instance for the AWS connection
+       */
+      _populateDb: function (region, accessKeyId, secretAccessKey, endpoint, tableName) {
+        AWS.config.region = region;
 
-        // var db = new AWS.DynamoDB();
-// @todo: add the endpoint as a attribute
-var db = new AWS.DynamoDB({
-  'accessKeyId': 'a',
-  'secretAccessKey':'b',
-  'endpoint':'http://localhost:4567'
-});
-/*
-// CREATE TABLE
-var params = {
-    "AttributeDefinitions": [
-        {
-            "AttributeName": "ForumName",
-            "AttributeType": "S"
-        },
-        {
-            "AttributeName": "Subject",
-            "AttributeType": "S"
-        },
-        {
-            "AttributeName": "LastPostDateTime",
-            "AttributeType": "S"
+        this.set( '_db', new AWS.DynamoDB({
+          'accessKeyId': accessKeyId,
+          'secretAccessKey': secretAccessKey,
+          'endpoint': endpoint
+        }));
+      },
+
+      _queryChanged: function () {
+        var save = function (context, nothing, data) {
+          context.data = data.Items;
+          context.fire('dynamodb-data', data.Items, { bubbles: false });
+        };
+
+        if ( this.query.TableName !== '' ) {
+          // Execute the request
+          if ( this.operation === 'scan' ) {
+            this._db.scan(this.query, save.bind(null, this));
+          } else {
+            this._db.query(this.query, save.bind(null, this));
+          }
         }
-    ],
-    "TableName": "Thread",
-    "KeySchema": [
-        {
-            "AttributeName": "ForumName",
-            "KeyType": "HASH"
-        },
-        {
-            "AttributeName": "Subject",
-            "KeyType": "RANGE"
+      },
+
+      _computeQuery: function () {
+        var params = {
+          TableName: this.tableName,
+          Limit: this.limit,
+        };
+
+        if ( this.indexName !== '' &&
+             this.conditionExpression !== '' &&
+             this.conditionNames !== {} &&
+             this.conditionValues !== {}
+        ) {
+          params.IndexName = this.indexName;
+          params.KeyConditionExpression = this.conditionExpression;
+          params.ExpressionAttributeNames = this.conditionNames;
+          params.ExpressionAttributeValues = this.conditionValues;
+          params.ScanIndexForward = this.ascending;
         }
-    ],
-    "LocalSecondaryIndexes": [
-        {
-            "IndexName": "LastPostIndex",
-            "KeySchema": [
-                {
-                    "AttributeName": "ForumName",
-                    "KeyType": "HASH"
-                },
-                {
-                    "AttributeName": "LastPostDateTime",
-                    "KeyType": "RANGE"
-                }
-            ],
-            "Projection": {
-                "ProjectionType": "KEYS_ONLY"
-            }
-        }
-    ],
-    "ProvisionedThroughput": {
-        "ReadCapacityUnits": 5,
-        "WriteCapacityUnits": 5
-    }
-};
-db.createTable(params, function (err, data) {
-  if (err) console.log(err, err.stack); // an error occurred
-  else     console.log(data);           // successful response
-});
-*/
 
-/*
-// CREATE ITEM
-var params = {
-    "TableName": "Thread",
-    "Item": {
-        "LastPostDateTime": {
-            "S": "201303190422"
-        },
-        "Tags": {
-            "SS": ["Update","Multiple Items","HelpMe"]
-        },
-        "ForumName": {
-            "S": "Amazon DynamoDB"
-        },
-        "Message": {
-            "S": "I want to update multiple items in a single API call. What's the best way to do that?"
-        },
-        "Subject": {
-            "S": "How do I update multiple items?"
-        },
-        "LastPostedBy": {
-            "S": "fred@example.com"
-        }
-    },
-    "ConditionExpression": "ForumName <> :f and Subject <> :s",
-    "ExpressionAttributeValues": {
-        ":f": {"S": "Amazon DynamoDB"},
-        ":s": {"S": "How do I update multiple items?"}
-    }
-};
-db.putItem(params, function (err, data) {
-  if (err) console.log(err, err.stack); // an error occurred
-  else     console.log(data);           // successful response
-});
-*/
+        return params;
+      },
 
-db.listTables({}, function(err, data) {
-  if (err) console.log(err, err.stack); // an error occurred
-  else     console.log(data);           // successful response
-});
-
-this.table = 'Forum';
-var params = {
-  TableName: this.table,
-  Limit: 100
-};
-
-var save = function (context, nothing, data) {
-// console.log(data);
-// console.log(nothing);
-  context.data = data.Items;
-console.log('DynamoDB Event: data retrieved', data.Items);
-  context.fire('dynamodb-data', data.Items, { bubbles: false });
-};
-
-db.scan(params, save.bind(null, this));
-
-
-
+      _operationChanged: function () {
+        this._queryChanged();
       }
     });
   })();
